@@ -27,7 +27,10 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
-      // TODO LOAD FOODS
+      // LOAD FOODS FROM API
+      const { data } = await api.get('/foods');
+
+      setFoods(data);
     }
 
     loadFoods();
@@ -37,7 +40,12 @@ const Dashboard: React.FC = () => {
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
     try {
-      // TODO ADD A NEW FOOD PLATE TO THE API
+      // ADD A NEW FOOD PLATE TO THE API
+      const newFood = { ...food, available: true, id: foods.length + 1 };
+
+      await api.post('/foods', newFood);
+
+      setFoods([...foods, newFood]);
     } catch (err) {
       console.log(err);
     }
@@ -46,11 +54,36 @@ const Dashboard: React.FC = () => {
   async function handleUpdateFood(
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
-    // TODO UPDATE A FOOD PLATE ON THE API
+    // UPDATE A FOOD PLATE ON THE API
+    try {
+      // 1) Update API
+      const { data: updatedFood } = await api.put(
+        `/foods/${editingFood.id}`,
+        food,
+      );
+
+      // 2) Update state
+      const updatedState = foods.map(currentFood =>
+        currentFood.id === updatedFood.id ? updatedFood : currentFood,
+      );
+
+      setFoods(updatedState);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async function handleDeleteFood(id: number): Promise<void> {
-    // TODO DELETE A FOOD PLATE FROM THE API
+    // DELETE A FOOD PLATE FROM THE API
+    try {
+      await api.delete(`/foods/${id}`);
+
+      const updatedFoods = foods.filter(currentFood => currentFood.id !== id);
+
+      setFoods(updatedFoods);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   function toggleModal(): void {
@@ -62,7 +95,9 @@ const Dashboard: React.FC = () => {
   }
 
   function handleEditFood(food: IFoodPlate): void {
-    // TODO SET THE CURRENT EDITING FOOD ID IN THE STATE
+    // SET THE CURRENT EDITING FOOD ID IN THE STATE
+    toggleEditModal();
+    setEditingFood(food);
   }
 
   return (
